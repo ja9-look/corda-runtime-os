@@ -34,11 +34,11 @@ import net.corda.messaging.utils.toRecord
 import net.corda.metrics.CordaMetrics
 import net.corda.schema.Schemas.getDLQTopic
 import net.corda.schema.Schemas.getStateAndEventStateTopic
+import net.corda.taskmanager.TaskManagerFactory
 import net.corda.utilities.debug
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.time.Clock
-import java.util.concurrent.Executors
 
 @Suppress("LongParameterList")
 internal class StateAndEventSubscriptionImpl<K : Any, S : Any, E : Any>(
@@ -105,6 +105,8 @@ internal class StateAndEventSubscriptionImpl<K : Any, S : Any, E : Any>(
 
     private val producerChannels = mutableMapOf<Int, Channel<ProducerData<K, S>>>()
     private val processorChannels = mutableMapOf<Int, Channel<ProcessorData<K, E>>>()
+
+    private val taskManager = TaskManagerFactory.createThreadPoolTaskManager(8, "StateAndEventTaskManager")
 
     /**
      * Is the subscription running.
@@ -331,7 +333,7 @@ internal class StateAndEventSubscriptionImpl<K : Any, S : Any, E : Any>(
 
     private fun CoroutineScope.launchProcessor(
         producerChannel: Channel<ProducerData<K, S>>, processorChannel: Channel<ProcessorData<K, E>>
-    ) = launch(Executors.newSingleThreadExecutor().asCoroutineDispatcher()) {
+    ) = launch(taskManager.asCoroutineDispatcher()) {
         log.info("@@@ creating processor")
         for (processorData in processorChannel) {
             log.info("@@@ processing")
@@ -376,7 +378,7 @@ internal class StateAndEventSubscriptionImpl<K : Any, S : Any, E : Any>(
 
     private fun CoroutineScope.launchProducer(
         producerChannel: Channel<ProducerData<K, S>>, config: ResolvedSubscriptionConfig
-    ) = launch(Executors.newSingleThreadExecutor().asCoroutineDispatcher()) {
+    ) = launch(taskManager.asCoroutineDispatcher()) {
         log.info("@@@ creating producer")
         val producer = builder.createProducer(config)
 
