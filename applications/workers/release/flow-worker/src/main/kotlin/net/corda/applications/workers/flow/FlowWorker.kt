@@ -3,6 +3,7 @@ package net.corda.applications.workers.flow
 import net.corda.applications.workers.workercommon.ApplicationBanner
 import net.corda.applications.workers.workercommon.DefaultWorkerParams
 import net.corda.applications.workers.workercommon.JavaSerialisationFilter
+import net.corda.applications.workers.workercommon.PathAndConfig
 import net.corda.applications.workers.workercommon.WorkerHelpers.Companion.getBootstrapConfig
 import net.corda.applications.workers.workercommon.WorkerHelpers.Companion.getParams
 import net.corda.applications.workers.workercommon.WorkerHelpers.Companion.loggerStartupInfo
@@ -16,12 +17,14 @@ import net.corda.osgi.api.Application
 import net.corda.osgi.api.Shutdown
 import net.corda.processors.flow.FlowProcessor
 import net.corda.processors.verification.VerificationProcessor
+import net.corda.schema.configuration.BootConfig
 import net.corda.tracing.configureTracing
 import net.corda.tracing.shutdownTracing
 import org.osgi.service.component.annotations.Activate
 import org.osgi.service.component.annotations.Component
 import org.osgi.service.component.annotations.Reference
 import org.slf4j.LoggerFactory
+import picocli.CommandLine
 import picocli.CommandLine.Mixin
 
 /** The worker for handling flows. */
@@ -69,10 +72,14 @@ class FlowWorker @Activate constructor(
 
         configureTracing("Flow Worker", params.defaultParams.zipkinTraceUrl, params.defaultParams.traceSamplesPerSecond)
 
+        val stateManagerPathAndConfig = PathAndConfig(BootConfig.BOOT_STATE_MANAGER, params.stateManagerParams)
+
         val config = getBootstrapConfig(
             secretsServiceFactoryResolver,
             params.defaultParams,
-            configurationValidatorFactory.createConfigValidator())
+            configurationValidatorFactory.createConfigValidator(),
+            listOf(stateManagerPathAndConfig)
+        )
 
         flowProcessor.start(config)
         verificationProcessor.start(config)
@@ -91,4 +98,7 @@ class FlowWorker @Activate constructor(
 private class FlowWorkerParams {
     @Mixin
     var defaultParams = DefaultWorkerParams()
+
+    @CommandLine.Option(names = ["-S", "--${BootConfig.BOOT_STATE_MANAGER}"], description = ["Parameters for the state manager."])
+    var stateManagerParams = emptyMap<String, String>()
 }
