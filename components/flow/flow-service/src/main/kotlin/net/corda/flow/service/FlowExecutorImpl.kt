@@ -51,13 +51,15 @@ class FlowExecutorImpl constructor(
         { cfg -> cfg.getConfig(MESSAGING_CONFIG) }
     )
 
-    companion object {
+    private companion object {
         private val log = LoggerFactory.getLogger(this::class.java.enclosingClass)
         private const val CONSUMER_GROUP = "FlowEventConsumer"
+        private const val DEFAULT_PROCESSOR_COUNT = 2
+        private const val MINIMUM_PROCESSOR_COUNT = 1
     }
 
     private val coordinator = coordinatorFactory.createCoordinator<FlowExecutor> { event, _ -> eventHandler(event) }
-    private var subscription: StateAndEventSubscription<String, Checkpoint, FlowEvent>? = null
+    private val subscriptions: MutableList<StateAndEventSubscription<String, Checkpoint, FlowEvent>> = mutableListOf()
     private var subscriptionRegistrationHandle: RegistrationHandle? = null
 
     override fun onConfigChange(config: Map<String, SmartConfig>) {
@@ -69,19 +71,22 @@ class FlowExecutorImpl constructor(
 
             // close the lifecycle registration first to prevent down being signaled
             subscriptionRegistrationHandle?.close()
-            subscription?.close()
+            subscriptions.forEach { subscription -> subscription.close() }
+            subscriptions.clear()
 
-            subscription = subscriptionFactory.createStateAndEventSubscription(
-                SubscriptionConfig(CONSUMER_GROUP, FLOW_EVENT_TOPIC),
-                flowEventProcessorFactory.create(flowConfig),
-                messagingConfig
-            )
+            repeat(1) {
+                subscriptions += subscriptionFactory.createStateAndEventSubscription(
+                    SubscriptionConfig(CONSUMER_GROUP, FLOW_EVENT_TOPIC),
+                    flowEventProcessorFactory.create(flowConfig),
+                    messagingConfig
+                )
+            }
 
             subscriptionRegistrationHandle = coordinator.followStatusChangesByName(
-                setOf(subscription!!.subscriptionName)
+                subscriptions.map { subscription -> subscription.subscriptionName }.toSet()
             )
 
-            subscription?.start()
+            subscriptions.forEach { subscription -> subscription.start() }
         } catch (ex: Exception) {
             val reason = "Failed to configure the flow executor using '${config}'"
             log.error(reason, ex)
@@ -108,7 +113,7 @@ class FlowExecutorImpl constructor(
             is StopEvent -> {
                 log.trace { "Flow executor is stopping..." }
                 subscriptionRegistrationHandle?.close()
-                subscription?.close()
+                subscriptions.forEach { subscription -> subscription.close() }
                 log.trace { "Flow executor stopped" }
             }
         }

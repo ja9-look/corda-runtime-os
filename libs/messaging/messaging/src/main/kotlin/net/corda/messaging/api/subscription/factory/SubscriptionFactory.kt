@@ -153,6 +153,13 @@ interface SubscriptionFactory {
         responderProcessor: RPCResponderProcessor<REQUEST, RESPONSE>
     ): RPCSubscription<REQUEST, RESPONSE>
 
+    fun <K : Any, S : Any, E : Any> createFlowStateAndEventSubscription(
+        subscriptionConfig: SubscriptionConfig,
+        processor: StateAndEventProcessor<K, S, E>,
+        messagingConfig: SmartConfig,
+        stateAndEventListener: StateAndEventListener<K, S>?
+    ): StateAndEventSubscription<K, S, E>
+
     /**
      * Create an http based instance of the [RPCSubscription]
      * This subscription is used to pick up requests of type [REQUEST]

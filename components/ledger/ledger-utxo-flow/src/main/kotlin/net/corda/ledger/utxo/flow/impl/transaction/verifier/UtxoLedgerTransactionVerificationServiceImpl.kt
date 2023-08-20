@@ -24,6 +24,7 @@ import org.osgi.service.component.annotations.Component
 import org.osgi.service.component.annotations.Reference
 import org.osgi.service.component.annotations.ServiceScope.PROTOTYPE
 import java.nio.ByteBuffer
+import java.time.Duration
 
 @Component(
     service = [UtxoLedgerTransactionVerificationService::class, UsedByFlow::class],

@@ -2,6 +2,8 @@ package net.corda.sandbox.serialization.amqp
 
 import net.corda.internal.serialization.AMQP_STORAGE_CONTEXT
 import net.corda.internal.serialization.SerializationServiceImpl
+import net.corda.internal.serialization.amqp.DeserializationInput
+import net.corda.internal.serialization.amqp.SerializationOutput
 import net.corda.internal.serialization.amqp.SerializerFactory
 import net.corda.internal.serialization.amqp.SerializerFactoryBuilder
 import net.corda.internal.serialization.registerCustomSerializers
@@ -69,10 +71,13 @@ class AMQPSerializationProvider @Activate constructor(
     override fun accept(context: MutableSandboxGroupContext) {
         val factory = createSerializerFactory(context)
 
+        val serializationOutput = { SerializationOutput(factory) }
+        val deserializationInput = { DeserializationInput(factory) }
+
         val serializationService = SerializationMetricsWrapper(
             serializationService = SerializationServiceImpl(
-                outputFactory = factory,
-                inputFactory = factory,
+                serializationOutput,
+                deserializationInput,
                 AMQP_STORAGE_CONTEXT.withSandboxGroup(context.sandboxGroup) //todo double check in CORE-12472
             ),
             context

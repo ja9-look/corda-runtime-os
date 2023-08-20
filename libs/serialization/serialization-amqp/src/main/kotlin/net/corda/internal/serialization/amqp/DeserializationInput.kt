@@ -37,7 +37,8 @@ data class ObjectAndEnvelope<out T>(val obj: T, val envelope: Envelope)
 class DeserializationInput(
     private val serializerFactory: SerializerFactory
 ) {
-    private val objectHistory = mutableListOf<Any>()
+
+    private val objectHistory: MutableList<Any> = mutableListOf()
 
     companion object {
         private val logger = LoggerFactory.getLogger(DeserializationInput::class.java)
