@@ -4,10 +4,7 @@ import io.micrometer.core.instrument.Timer
 import net.corda.flow.external.events.executor.ExternalEventExecutor
 import net.corda.flow.fiber.metrics.recordSuspendable
 import net.corda.ledger.utxo.flow.impl.cache.StateAndRefCache
-import net.corda.ledger.utxo.flow.impl.persistence.LedgerPersistenceMetricOperationName.FindUnconsumedStatesByType
 import net.corda.ledger.utxo.flow.impl.persistence.LedgerPersistenceMetricOperationName.ResolveStateRefs
-import net.corda.ledger.utxo.flow.impl.persistence.external.events.FindUnconsumedStatesByTypeExternalEventFactory
-import net.corda.ledger.utxo.flow.impl.persistence.external.events.FindUnconsumedStatesByTypeParameters
 import net.corda.ledger.utxo.flow.impl.persistence.external.events.ResolveStateRefsExternalEventFactory
 import net.corda.ledger.utxo.flow.impl.persistence.external.events.ResolveStateRefsParameters
 import net.corda.metrics.CordaMetrics
@@ -39,18 +36,6 @@ class UtxoLedgerStateQueryServiceImpl @Activate constructor(
     @Reference(service = StateAndRefCache::class)
     private val stateAndRefCache: StateAndRefCache
 ) : UtxoLedgerStateQueryService, UsedByFlow, SingletonSerializeAsToken {
-
-    @Suspendable
-    override fun <T : ContractState> findUnconsumedStatesByType(stateClass: Class<out T>): List<StateAndRef<T>> {
-        return recordSuspendable({ ledgerPersistenceFlowTimer(FindUnconsumedStatesByType) }) @Suspendable {
-            wrapWithPersistenceException {
-                externalEventExecutor.execute(
-                    FindUnconsumedStatesByTypeExternalEventFactory::class.java,
-                    FindUnconsumedStatesByTypeParameters(stateClass)
-                )
-            }.map { it.toStateAndRef(serializationService) }
-        }
-    }
 
     @Suspendable
     override fun resolveStateRefs(stateRefs: Iterable<StateRef>): List<StateAndRef<*>> {

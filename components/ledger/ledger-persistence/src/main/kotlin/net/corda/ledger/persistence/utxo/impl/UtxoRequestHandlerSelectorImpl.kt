@@ -4,7 +4,6 @@ import net.corda.data.ledger.persistence.FindSignedGroupParameters
 import net.corda.data.ledger.persistence.FindSignedLedgerTransaction
 import net.corda.data.ledger.persistence.FindTransaction
 import net.corda.data.ledger.persistence.FindTransactionIdsAndStatuses
-import net.corda.data.ledger.persistence.FindUnconsumedStatesByType
 import net.corda.data.ledger.persistence.LedgerPersistenceRequest
 import net.corda.data.ledger.persistence.LedgerTypes
 import net.corda.data.ledger.persistence.PersistSignedGroupParametersIfDoNotExist
@@ -24,7 +23,6 @@ import net.corda.ledger.persistence.utxo.impl.request.handlers.UtxoFindTransacti
 import net.corda.ledger.persistence.utxo.impl.request.handlers.UtxoFindSignedGroupParametersRequestHandler
 import net.corda.ledger.persistence.utxo.impl.request.handlers.UtxoFindSignedLedgerTransactionRequestHandler
 import net.corda.ledger.persistence.utxo.impl.request.handlers.UtxoFindTransactionRequestHandler
-import net.corda.ledger.persistence.utxo.impl.request.handlers.UtxoFindUnconsumedStatesByTypeRequestHandler
 import net.corda.ledger.persistence.utxo.impl.request.handlers.UtxoPersistSignedGroupParametersIfDoNotExistRequestHandler
 import net.corda.ledger.persistence.utxo.impl.request.handlers.UtxoPersistTransactionIfDoesNotExistRequestHandler
 import net.corda.ledger.persistence.utxo.impl.request.handlers.UtxoPersistTransactionRequestHandler
@@ -84,15 +82,6 @@ class UtxoRequestHandlerSelectorImpl @Activate constructor(
             is FindSignedLedgerTransaction -> {
                 UtxoFindSignedLedgerTransactionRequestHandler(
                     req,
-                    externalEventContext,
-                    persistenceService,
-                    outputRecordFactory
-                )
-            }
-            is FindUnconsumedStatesByType -> {
-                UtxoFindUnconsumedStatesByTypeRequestHandler(
-                    req,
-                    sandbox,
                     externalEventContext,
                     persistenceService,
                     outputRecordFactory

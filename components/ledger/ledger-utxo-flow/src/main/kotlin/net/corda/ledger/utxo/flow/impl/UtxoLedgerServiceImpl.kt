@@ -104,11 +104,6 @@ class UtxoLedgerServiceImpl @Activate constructor(
     }
 
     @Suspendable
-    override fun <T : ContractState> findUnconsumedStatesByType(type: Class<T>): List<StateAndRef<T>> {
-        return utxoLedgerStateQueryService.findUnconsumedStatesByType(type)
-    }
-
-    @Suspendable
     override fun <T : ContractState> findUnconsumedStatesByExactType(
         type: Class<T>,
         limit: Int,
@@ -121,6 +116,11 @@ class UtxoLedgerServiceImpl @Activate constructor(
             .setLimit(limit)
             .execute() as PagedQuery.ResultSet<StateAndRef<T>>
     }
+
+    override fun <T : ContractState> findUnconsumedStatesByExactType(
+        type: Class<T>,
+        limit: Int
+    ): PagedQuery.ResultSet<StateAndRef<T>> = findUnconsumedStatesByExactType(type, limit, Instant.now())
 
     @Suspendable
     override fun finalize(

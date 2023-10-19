@@ -18,7 +18,6 @@ import net.corda.ledger.utxo.data.transaction.UtxoVisibleTransactionOutputDto
 import net.corda.ledger.utxo.data.transaction.WrappedUtxoWireTransaction
 import net.corda.libs.packaging.hash
 import net.corda.orm.utils.transaction
-import net.corda.utilities.serialization.deserialize
 import net.corda.utilities.time.Clock
 import net.corda.v5.application.crypto.DigestService
 import net.corda.v5.application.marshalling.JsonMarshallingService
@@ -30,12 +29,12 @@ import net.corda.v5.ledger.common.transaction.CordaPackageSummary
 import net.corda.v5.ledger.utxo.ContractState
 import net.corda.v5.ledger.utxo.StateAndRef
 import net.corda.v5.ledger.utxo.StateRef
+import net.corda.v5.ledger.utxo.observer.UtxoToken
 import net.corda.v5.ledger.utxo.query.json.ContractStateVaultJsonFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import javax.persistence.EntityManager
 import javax.persistence.EntityManagerFactory
-import net.corda.v5.ledger.utxo.observer.UtxoToken
 
 @Suppress("LongParameterList")
 class UtxoPersistenceServiceImpl(
@@ -105,15 +104,6 @@ class UtxoPersistenceServiceImpl(
             } else {
                 null
             } to status
-        }
-    }
-
-    override fun <T: ContractState> findUnconsumedVisibleStatesByType(stateClass: Class<out T>): List<UtxoVisibleTransactionOutputDto> {
-        return entityManagerFactory.transaction { em ->
-            repository.findUnconsumedVisibleStatesByType(em)
-        }.filter {
-            val contractState = serializationService.deserialize<ContractState>(it.data)
-            stateClass.isInstance(contractState)
         }
     }
 

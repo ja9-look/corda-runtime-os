@@ -13,7 +13,7 @@ class ReportStatesFlow : ClientStartableFlow {
 
     @Suspendable
     override fun call(requestBody: ClientRequestBody): String {
-        val unconsumedStates = utxoLedgerService.findUnconsumedStatesByType(SimpleState::class.java)
+        val unconsumedStates = utxoLedgerService.findUnconsumedStatesByExactType(SimpleState::class.java, 100).results
         val result = unconsumedStates.fold(0L) { acc, stateAndRef ->
             acc + stateAndRef.state.contractState.value
         }
