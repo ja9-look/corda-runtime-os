@@ -56,6 +56,7 @@ import net.corda.membership.impl.persistence.service.dummy.TestVirtualNodeInfoRe
 import net.corda.membership.lib.GroupParametersNotaryUpdater.Companion.EPOCH_KEY
 import net.corda.membership.lib.GroupParametersNotaryUpdater.Companion.MODIFIED_TIME_KEY
 import net.corda.membership.lib.GroupParametersNotaryUpdater.Companion.MPV_KEY
+import net.corda.membership.lib.GroupParametersNotaryUpdater.Companion.NOTARY_SERVICE_BACKCHAIN_REQUIRED
 import net.corda.membership.lib.GroupParametersNotaryUpdater.Companion.NOTARY_SERVICE_KEYS_KEY
 import net.corda.membership.lib.GroupParametersNotaryUpdater.Companion.NOTARY_SERVICE_NAME_KEY
 import net.corda.membership.lib.GroupParametersNotaryUpdater.Companion.NOTARY_SERVICE_PROTOCOL_KEY
@@ -898,6 +899,7 @@ class MembershipPersistenceTest {
             KeyValuePair(String.format(NOTARY_SERVICE_PROTOCOL_KEY, 0), notaryServicePlugin),
             KeyValuePair(String.format(NOTARY_SERVICE_KEYS_KEY, 0, 0), keyEncodingService.encodeAsString(notaryKey)),
             KeyValuePair(String.format(NOTARY_SERVICE_PROTOCOL_VERSIONS_KEY, 0, 0), "1"),
+            KeyValuePair(String.format(NOTARY_SERVICE_BACKCHAIN_REQUIRED, 0), true.toString())
         )
 
         val persisted = membershipPersistenceClientWrapper.addNotaryToGroupParameters(notary)
@@ -985,6 +987,7 @@ class MembershipPersistenceTest {
             KeyValuePair(String.format(NOTARY_SERVICE_KEYS_KEY, 0, 0), notaryKeyAsString),
             KeyValuePair(String.format(NOTARY_SERVICE_PROTOCOL_VERSIONS_KEY, 0, 0), "1"),
             KeyValuePair(String.format(NOTARY_SERVICE_PROTOCOL_VERSIONS_KEY, 0, 1), "2"),
+            KeyValuePair(String.format(NOTARY_SERVICE_BACKCHAIN_REQUIRED, 0), true.toString())
         )
 
         val persisted = membershipPersistenceClientWrapper.addNotaryToGroupParameters(notary)
@@ -1103,6 +1106,7 @@ class MembershipPersistenceTest {
             KeyValuePair(String.format(NOTARY_SERVICE_PROTOCOL_VERSIONS_KEY, 0, 0), "1"),
             KeyValuePair(String.format(NOTARY_SERVICE_KEYS_KEY, 0, 0), oldNotaryKeyAsString),
             KeyValuePair(String.format(NOTARY_SERVICE_KEYS_KEY, 0, 1), notaryKeyAsString),
+            KeyValuePair(String.format(NOTARY_SERVICE_BACKCHAIN_REQUIRED, 0), true.toString())
         )
 
         val persisted = membershipPersistenceClientWrapper.addNotaryToGroupParameters(notary)
@@ -1986,7 +1990,8 @@ class MembershipPersistenceTest {
         notaryServiceName: String,
         notaryServicePlugin: String,
         notaryKey: PublicKey,
-        notaryProtocolVersions: List<String> = listOf("1")
+        notaryProtocolVersions: List<String> = listOf("1"),
+        backchainRequired: Boolean = true
     ): KeyValuePairList {
         val notaryKeyHash = notaryKey.fullIdHash()
         return KeyValuePairList(
@@ -2004,6 +2009,7 @@ class MembershipPersistenceTest {
                 KeyValuePair(String.format(NOTARY_KEY_PEM, 0), keyEncodingService.encodeAsString(notaryKey)),
                 KeyValuePair(String.format(NOTARY_KEY_SPEC, 0), "SHA512withECDSA"),
                 KeyValuePair(String.format(NOTARY_KEY_HASH, 0), notaryKeyHash.toString()),
+                KeyValuePair(String.format(NOTARY_SERVICE_BACKCHAIN_REQUIRED, 0), backchainRequired.toString())
             ) + notaryProtocolVersions.mapIndexed { i, version ->
                 KeyValuePair(String.format(NOTARY_SERVICE_PROTOCOL_VERSIONS, i), version)
             } ).sorted()
