@@ -232,7 +232,7 @@ internal class StateAndEventSubscriptionImpl<K : Any, S : Any, E : Any>(
             }
         }
 
-        log.debug { "Processing events(keys: ${events.joinToString { it.key.toString() }}, size: ${events.size})" }
+        log.debug { "Processing events(keys: ${events}, size: ${events.size})" }
         try {
             processorMeter.recordCallable {
                 for (event in events) {
@@ -241,7 +241,7 @@ internal class StateAndEventSubscriptionImpl<K : Any, S : Any, E : Any>(
                 }
             }
         } catch (ex: StateAndEventConsumer.RebalanceInProgressException) {
-            log.warn ("Abandoning processing of events(keys: ${events.joinToString { it.key.toString() }}, " +
+            log.warn ("Abandoning processing of events(keys: ${events}, " +
                     "size: ${events.size}) due to rebalance", ex)
             return true
         }
@@ -262,7 +262,7 @@ internal class StateAndEventSubscriptionImpl<K : Any, S : Any, E : Any>(
             producer.sendRecordOffsetsToTransaction(eventConsumer, events)
             producer.commitTransaction()
         }
-        log.debug { "Processing events(keys: ${events.joinToString { it.key.toString() }}, size: ${events.size}) complete." }
+        log.debug { "Processing events(keys: ${events}, size: ${events.size}) complete." }
 
         stateAndEventConsumer.updateInMemoryStatePostCommit(updatedStates, clock)
         return false
