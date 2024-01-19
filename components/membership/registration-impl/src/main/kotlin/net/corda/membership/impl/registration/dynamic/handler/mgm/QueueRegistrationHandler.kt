@@ -78,7 +78,7 @@ internal class QueueRegistrationHandler(
             .setRegistrationId(registrationId)
             .setMember(member)
             .setMgm(mgm)
-
+        registrationLogger.info("Processing queue registration event.")
         val outputCommand = try {
             if (command.numberOfRetriesSoFar < MAX_RETRIES) {
                 queueRequest(key, command, registrationLogger)

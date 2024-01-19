@@ -1,5 +1,9 @@
 package net.corda.membership.impl.registration
 
+import net.corda.data.membership.command.registration.RegistrationCommand
+import net.corda.data.membership.state.RegistrationState
+import net.corda.messaging.api.processor.StateAndEventProcessor
+import net.corda.messaging.api.records.Record
 import net.corda.virtualnode.toCorda
 import org.slf4j.Logger
 
@@ -15,6 +19,8 @@ class RegistrationLogger(private val logger: Logger) {
         const val MGM_HOLDING_ID = "mgm-holding-id"
         const val MGM_NAME = "mgm-name"
         const val GROUP_ID = "group-id"
+        const val REGISTRATION_EVENT_KEY = "registration-event-key"
+        const val REGISTRATION_COMMAND = "registration-command"
     }
 
     private val loggingContext: MutableMap<String, String> = mutableMapOf()
@@ -50,6 +56,23 @@ class RegistrationLogger(private val logger: Logger) {
         return this
     }
 
+    fun setRegistrationEvent(event: Record<String, RegistrationCommand>): RegistrationLogger {
+        loggingContext[REGISTRATION_EVENT_KEY] = event.key
+        event.value?.let { loggingContext[REGISTRATION_COMMAND] = it.command::class.java.toString() }
+        return this
+    }
+
+    fun setRegistrationState(state: StateAndEventProcessor.State<RegistrationState>?): RegistrationLogger {
+        state?.let { nonNullState ->
+            nonNullState.value?.let {
+                setRegistrationId(it.registrationId)
+                setMember(it.registeringMember)
+                setMgm(it.mgm)
+            }
+        }
+        return this
+    }
+
     fun info(msg: String) {
         logger.info(concatContext(msg))
     }
@@ -75,6 +98,10 @@ class RegistrationLogger(private val logger: Logger) {
     }
 
     private fun concatContext(msg: String): String {
-        return msg.trim() + " $loggingContext"
+        return if(loggingContext.isEmpty()) {
+            msg
+        } else {
+            msg.trim() + " $loggingContext"
+        }
     }
 }
