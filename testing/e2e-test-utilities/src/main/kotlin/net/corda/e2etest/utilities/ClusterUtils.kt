@@ -1,4 +1,5 @@
 @file:Suppress("TooManyFunctions")
+
 package net.corda.e2etest.utilities
 
 import com.fasterxml.jackson.module.kotlin.contains
@@ -18,9 +19,7 @@ import kotlin.concurrent.withLock
  * the resulting CPI to the system if it doesn't already exist.
  */
 fun ClusterInfo.conditionallyUploadCordaPackage(
-    cpiName: String,
-    cpbResourceName: String?,
-    groupPolicy: String
+    cpiName: String, cpbResourceName: String?, groupPolicy: String
 ) = conditionallyUploadCordaPackage(cpiName) {
     cpiUpload(cpbResourceName, groupPolicy, cpiName)
 }
@@ -32,8 +31,7 @@ fun ClusterInfo.conditionallyUploadCpiSigningCertificate() = cluster {
             interval(1.seconds)
             command { getCertificateChain(CODE_SIGNER_CERT_USAGE, CODE_SIGNER_CERT_ALIAS) }
             condition {
-                it.code == ResponseCode.RESOURCE_NOT_FOUND.statusCode ||
-                        it.code == ResponseCode.OK.statusCode
+                it.code == ResponseCode.RESOURCE_NOT_FOUND.statusCode || it.code == ResponseCode.OK.statusCode
             }
         }.let {
             it.code != ResponseCode.RESOURCE_NOT_FOUND.statusCode
@@ -61,11 +59,7 @@ fun conditionallyUploadCordaPackage(
     staticMemberNames: List<String>,
     customGroupParameters: Map<String, Any> = emptyMap(),
 ) = DEFAULT_CLUSTER.conditionallyUploadCordaPackage(
-    cpiName,
-    cpbResourceName,
-    groupId,
-    staticMemberNames,
-    customGroupParameters
+    cpiName, cpbResourceName, groupId, staticMemberNames, customGroupParameters
 )
 
 fun ClusterInfo.conditionallyUploadCordaPackage(
@@ -80,8 +74,7 @@ fun ClusterInfo.conditionallyUploadCordaPackage(
 
 private val uploading = ConcurrentHashMap<Pair<String, String>, Unit?>()
 fun ClusterInfo.conditionallyUploadCordaPackage(
-    name: String,
-    cpiUpload: ClusterBuilder.() -> SimpleResponse
+    name: String, cpiUpload: ClusterBuilder.() -> SimpleResponse
 ) = uploading.compute(Pair(this.id, name)) { _, _ ->
     cluster {
         if (getExistingCpi(name) == null) {
@@ -96,8 +89,7 @@ fun ClusterInfo.conditionallyUploadCordaPackage(
                 interval(Duration.ofSeconds(2))
                 command { cpiStatus(responseStatusId) }
                 condition {
-                    it.code == ResponseCode.OK.statusCode
-                            && it.toJson()["status"].textValue() == ResponseCode.OK.toString()
+                    it.code == ResponseCode.OK.statusCode && it.toJson()["status"].textValue() == ResponseCode.OK.toString()
                 }
             }
         }
@@ -105,14 +97,12 @@ fun ClusterInfo.conditionallyUploadCordaPackage(
 }
 
 fun getOrCreateVirtualNodeFor(
-    x500: String,
-    cpiName: String
+    x500: String, cpiName: String
 ) = DEFAULT_CLUSTER.getOrCreateVirtualNodeFor(x500, cpiName)
 
 val vNodeCreationSemaphore = Semaphore(2)
 fun ClusterInfo.getOrCreateVirtualNodeFor(
-    x500: String,
-    cpiName: String
+    x500: String, cpiName: String
 ): String = cluster {
     // be a bit patient for the CPI info to get there in case it has just been uploaded
     val json = eventually(
@@ -159,16 +149,13 @@ fun ClusterInfo.getExistingCpi(
         failMessage("Failed to list CPIs")
     }.toJson().apply {
         assertThat(contains("cpis")).isTrue
-    }["cpis"]
-        .toList()
-        .firstOrNull {
-            it["id"]["cpiName"].textValue() == cpiName
-        }
+    }["cpis"].toList().firstOrNull {
+        it["id"]["cpiName"].textValue() == cpiName
+    }
 }
 
 fun ClusterInfo.addSoftHsmFor(
-    holdingId: String,
-    category: String
+    holdingId: String, category: String
 ) = cluster {
     assertWithRetry {
         timeout(Duration.ofSeconds(5))
@@ -179,10 +166,7 @@ fun ClusterInfo.addSoftHsmFor(
 }
 
 fun ClusterInfo.createKeyFor(
-    tenantId: String,
-    alias: String,
-    category: String,
-    scheme: String
+    tenantId: String, alias: String, category: String, scheme: String
 ): String = cluster {
     val keyId = assertWithRetry {
         interval(1.seconds)
@@ -204,11 +188,7 @@ fun ClusterInfo.createKeyFor(
 
 private val keyExistsLock = ReentrantLock()
 fun ClusterInfo.whenNoKeyExists(
-    tenantId: String,
-    alias: String? = null,
-    category: String? = null,
-    ids: List<String>? = null,
-    block: () -> Unit
+    tenantId: String, alias: String? = null, category: String? = null, ids: List<String>? = null, block: () -> Unit
 ) = keyExistsLock.withLock {
     cluster {
         val result = assertWithRetryIgnoringExceptions {
@@ -224,23 +204,31 @@ fun ClusterInfo.whenNoKeyExists(
 }
 
 fun ClusterInfo.rotateCryptoUnmanagedWrappingKeys(
-    oldKeyAlias: String,
-    newKeyAlias: String
+    oldKeyAlias: String, newKeyAlias: String, expectedHttpStatus: String
 ) = cluster {
     assertWithRetry {
         command { doRotateCryptoUnmanagedWrappingKeys(oldKeyAlias, newKeyAlias) }
-        condition { it.code == ResponseCode.ACCEPTED.statusCode }
+        if (expectedHttpStatus == "NotFound") {
+            condition { it.code == ResponseCode.RESOURCE_NOT_FOUND.statusCode }
+        } else if (expectedHttpStatus == "Accepted") {
+            condition { it.code == ResponseCode.ACCEPTED.statusCode }
+        }
     }
 }
 
 fun ClusterInfo.getStatusForUnmanagedWrappingKeysRotation(
-    keyAlias: String
+    keyAlias: String, expectedHttpStatus: String
 ) = cluster {
     assertWithRetry {
         command { getCryptoUnmanagedWrappingKeysRotationStatus(keyAlias) }
-        condition { it.code == ResponseCode.OK.statusCode }
+        if (expectedHttpStatus == "NotFound") {
+            condition { it.code == ResponseCode.RESOURCE_NOT_FOUND.statusCode }
+        } else if (expectedHttpStatus == "OK") {
+            condition { it.code == ResponseCode.OK.statusCode }
+        }
     }
 }
+
 
 fun ClusterInfo.getProtocolVersionForUnmanagedKeyRotation(
 ) = cluster {
