@@ -167,6 +167,7 @@ class ConsumerProcessor<K : Any, S : Any, E : Any>(
             // logged in SM and recorded by a metric
             stateManager.delete(statesToDelete)
         }
+        log.info("mediator ${Thread.currentThread().id} overall ${(System.nanoTime() - startTimestamp)/1e6}")
         metrics.processorTimer.record(System.nanoTime() - startTimestamp, TimeUnit.NANOSECONDS)
     }
 
