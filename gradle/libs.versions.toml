@@ -22,9 +22,7 @@ kubernetesClientVersion = "6.10.0"
 swaggerVersion = "2.2.16"
 # Please also update SWAGGERUI.version in net.corda.rest.server.impl.internal.OptionalDependency
 swaggeruiVersion = "5.10.3"
-jcipAnnotationsVersion = "1.0_2"
 pf4jVersion = "3.10.0"
-braveVersion = "6.0.0"
 zipkinReporterVersion = "3.2.1"
 zipkinCoreVersion = "2.27.1"
 liquibaseVersion = "4.24.0"
@@ -48,10 +46,7 @@ snappyJavaVersion="1.1.10.5"
 typeSafeConfigVersion = "1.4.3"
 okHttpVersion = { strictly = "4.9.2" }
 okioVersion = { strictly = "3.4.0" }
-pf4jVersion = "3.10.0"
 unirestVersion = "3.14.5"
-zipkinCoreVersion = "2.27.1"
-zipkinReporterVersion = "3.3.0"
 
 # Testing
 assertjVersion = "3.25.3"
