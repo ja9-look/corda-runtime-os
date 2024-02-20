@@ -49,7 +49,6 @@ class UtxoDemoEvolveFlow : ClientStartableFlow {
 
     @Suspendable
     override fun call(requestBody: ClientRequestBody): String {
-        log.info("Utxo flow demo starting... v5")
         val response = try {
             val request = requestBody.getRequestBodyAs(jsonMarshallingService, EvolveMessage::class.java)
 
@@ -69,7 +68,6 @@ class UtxoDemoEvolveFlow : ClientStartableFlow {
             val outParticipantKeys = (inputState.participants.filterIndexed { index, _ ->
                 inputState.participantNames[index] !in request.removeParticipants
             }) + request.addParticipants.map {
-                log.info("adding new participant $it")
                 val newParticipantInfo = memberLookup.lookup(MemberX500Name.parse(it))
                 if (newParticipantInfo == null) {
                     val msg = "new member $it not found"
@@ -77,15 +75,10 @@ class UtxoDemoEvolveFlow : ClientStartableFlow {
                     throw IllegalStateException(msg)
                 } else {
                     val newKey = newParticipantInfo.ledgerKeys.first()
-                    log.info("adding new participant ${it} key $newKey")
                     newKey
                 }
             }
             val outParticipantNames =  inputState.participantNames.filter { it !in request.removeParticipants } + request.addParticipants
-            log.info("EEEEE evolve output state participant keys are ${outParticipantKeys.size} "
-                +"$outParticipantKeys + ${request.addParticipants} - ${request.removeParticipants}")
-            log.info("EEEEE evolve output state participant names are ${outParticipantNames.size} "
-                +"$outParticipantNames + ${request.addParticipants} - ${request.removeParticipants}")
             val output =
                 TestUtxoState(
                     request.update,
@@ -98,7 +91,6 @@ class UtxoDemoEvolveFlow : ClientStartableFlow {
                     "Member $x500 does not exist in the membership group"
                 }
             }
-            log.info("EEEEE evolve members are ${members.size} ${members.map { it.name }}")
 
             val signedTransaction = utxoLedgerService.createTransactionBuilder()
                 .addCommand(TestCommand())
@@ -110,7 +102,6 @@ class UtxoDemoEvolveFlow : ClientStartableFlow {
                 .toSignedTransaction()
 
             val sessions = (members - memberLookup.myInfo()).map { flowMessaging.initiateFlow(it.name) }
-            log.info("EEEEE sessions are ${sessions.size} $sessions")
             val finalizationResult = utxoLedgerService.finalize(
                     signedTransaction,
                     sessions
