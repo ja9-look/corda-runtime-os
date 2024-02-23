@@ -49,17 +49,6 @@ internal class FlowEventPipelineImpl(
         // event handler
         context.flowMetrics.flowEventReceived(context.inputEventPayload::class.java.name)
 
-        val checkpoint = context.checkpoint
-
-        context.flowTraceContext.apply {
-            val flowStartContext = checkpoint.flowStartContext
-            traceTag(TraceTag.FLOW_ID, checkpoint.flowId)
-            traceTag(TraceTag.FLOW_CLASS, flowStartContext.flowClassName)
-            traceTag(TraceTag.FLOW_REQUEST_ID, flowStartContext.requestId)
-            traceTag(TraceTag.FLOW_VNODE, checkpoint.holdingIdentity.shortHash.toString())
-            traceTag(TraceTag.FLOW_INITIATOR, flowStartContext.initiatedBy.toCorda().shortHash.toString())
-        }
-
         return this
     }
 

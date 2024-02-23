@@ -32,7 +32,6 @@ interface FlowEventPipelineFactory {
         event: FlowEvent,
         configs: Map<String, SmartConfig>,
         mdcProperties: Map<String, String>,
-        traceContext: TraceContext,
         eventRecordTimestamp: Long,
         inputEventHash: String?
     ): FlowEventPipeline
