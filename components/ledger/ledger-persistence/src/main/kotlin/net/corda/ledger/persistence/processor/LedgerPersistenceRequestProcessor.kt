@@ -12,9 +12,7 @@ import net.corda.metrics.CordaMetrics
 import net.corda.persistence.common.EntitySandboxService
 import net.corda.persistence.common.ResponseFactory
 import net.corda.sandboxgroupcontext.CurrentSandboxGroupContext
-import net.corda.tracing.impl.TracingState
 import net.corda.tracing.trace
-import net.corda.tracing.traceProcessing
 import net.corda.utilities.MDC_CLIENT_ID
 import net.corda.utilities.MDC_EXTERNAL_EVENT_ID
 import net.corda.utilities.MDC_VNODE_ID
@@ -75,7 +73,7 @@ class LedgerPersistenceRequestProcessor(
 
                     currentSandboxGroupContext.set(sandbox)
 
-                    trace("ledger persistence ${request.request.javaClass.simpleName.toString()}") {
+                    trace("ledger persistence ${request.request.javaClass.simpleName}") {
                         delegatedRequestHandlerSelector.selectHandler(sandbox, request).execute()
                     }
                 } catch (e: Exception) {
