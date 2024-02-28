@@ -18,10 +18,6 @@ micrometerVersion = "1.12.3"
 nimbusVersion = "11.10.1"
 kafkaClientVersion = "3.6.1_1"
 kubernetesClientVersion = "6.10.0"
-# Note: We cannot go to the higher versions as they transitively depend on SLF4J 2.X
-swaggerVersion = "2.2.16"
-# Please also update SWAGGERUI.version in net.corda.rest.server.impl.internal.OptionalDependency
-swaggeruiVersion = "5.10.3"
 pf4jVersion = "3.10.0"
 zipkinReporterVersion = "3.2.1"
 zipkinCoreVersion = "2.27.1"
